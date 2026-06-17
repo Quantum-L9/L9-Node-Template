@@ -1,0 +1,111 @@
+name: PR Pipeline Gate
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    outputs:
+      run_lint: ${{ steps.classify.outputs.run_lint }}
+      run_test: ${{ steps.classify.outputs.run_test }}
+      run_security: ${{ steps.classify.outputs.run_security }}
+      run_infrastructure: ${{ steps.classify.outputs.run_infrastructure }}
+      is_docs_only: ${{ steps.classify.outputs.is_docs_only }}
+      requires_human_review: ${{ steps.classify.outputs.requires_human_review }}
+      detected_labels: ${{ steps.classify.outputs.detected_labels }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - id: classify
+        run: python .github/scripts/classify_pr.py
+
+  lint:
+    needs: classify
+    if: needs.classify.outputs.run_lint == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    needs: classify
+    if: needs.classify.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+      - run: |
+          if [ -f pytest.ini ] || [ -f pyproject.toml ] || [ -d tests ]; then
+            pip install pytest
+            pytest
+          else
+            echo "No test configuration found — skipping"
+          fi
+
+  security:
+    needs: classify
+    if: needs.classify.outputs.run_security == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install semgrep
+      - run: semgrep scan --config auto --error
+
+  gate:
+    name: PR Pipeline Gate
+    needs: [classify, lint, test, security]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate gate
+        run: |
+          echo "=== Gate Evaluation ==="
+          echo "Classify: ${{ needs.classify.result }}"
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Security: ${{ needs.security.result }}"
+
+          # Fail if any required job failed (skipped is OK — means classifier said not needed)
+          if [[ "${{ needs.classify.result }}" == "failure" ]]; then
+            echo "GATE FAILED: Classifier failed"
+            exit 1
+          fi
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then
+            echo "GATE FAILED: Lint failed"
+            exit 1
+          fi
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then
+            echo "GATE FAILED: Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security.result }}" == "failure" ]]; then
+            echo "GATE FAILED: Security scan failed"
+            exit 1
+          fi
+          echo "GATE PASSED"
