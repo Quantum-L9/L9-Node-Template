@@ -16,6 +16,7 @@ Routing logic:
   - Unknown extensions fail closed (all gates run).
   - Labels are hints only — evidence beats labels.
 """
+import json
 import os
 import subprocess
 import sys
@@ -30,13 +31,17 @@ SECURITY_PATTERNS = {".semgrep", ".gitleaks", "security"}
 
 # --- Helpers ---
 
+
 def get_changed_files():
     """Get list of changed files vs main."""
     # Try git diff first (works locally and in CI with fetch-depth: 0)
     try:
         result = subprocess.run(
             ["git", "diff", "--name-only", "origin/main...HEAD"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
         if result.returncode == 0 and result.stdout.strip():
             return result.stdout.strip().split("\n")
@@ -46,12 +51,10 @@ def get_changed_files():
     # Fallback: check GITHUB_EVENT_PATH for PR changed files
     event_path = os.environ.get("GITHUB_EVENT_PATH")
     if event_path and os.path.exists(event_path):
-        import json
         with open(event_path) as f:
-            event = json.load(f)
-        # For pull_request events, list files via API would be needed
-        # Fall through to fail-closed behavior
-        pass
+            event_data = json.load(f)
+        # Log event keys for debugging; actual file list requires API call
+        print(f"  Event keys: {list(event_data.keys())}")
 
     return []
 
@@ -91,7 +94,9 @@ def classify(changed_files):
             detected_labels.add("type:feature")
 
         # Infrastructure files
-        elif ext in INFRA_EXTENSIONS or any(p in filepath_lower for p in [".tf", "terraform", "infra"]):
+        elif ext in INFRA_EXTENSIONS or any(
+            p in filepath_lower for p in [".tf", "terraform", "infra"]
+        ):
             run_lint = True
             run_infrastructure = True
             run_security = True

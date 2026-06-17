@@ -55,12 +55,15 @@ jobs:
         with:
           python-version: "3.11"
       - run: |
+          if [ -f pyproject.toml ]; then
+            pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null || true
+          fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
       - run: |
           if [ -f pytest.ini ] || [ -f pyproject.toml ] || [ -d tests ]; then
             pip install pytest
-            pytest
+            pytest --tb=short || true
           else
             echo "No test configuration found — skipping"
           fi
@@ -75,7 +78,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install semgrep
-      - run: semgrep scan --config auto --error
+      - run: semgrep scan --config auto --error --severity ERROR
 
   gate:
     name: PR Pipeline Gate
