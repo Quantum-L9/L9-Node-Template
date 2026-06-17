@@ -1,0 +1,74 @@
+name: Promptfoo Evals
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+    paths:
+      - "prompts/**"
+      - "promptfooconfig.yaml"
+      - ".github/workflows/promptfoo-evals.yml"
+  schedule:
+    # Nightly at 02:00 UTC — catches model drift even when prompts haven't changed
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}
+
+env:
+  NODE_VERSION: "22"
+
+permissions:
+  contents: read
+  pull-requests: write   # required: promptfoo posts before/after diff to PR
+
+jobs:
+  promptfoo-evals:
+    name: "prompt-eval → gate"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install promptfoo
+        run: npm install -g promptfoo@latest
+
+      - name: Cache promptfoo results
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/promptfoo
+          key: ${{ runner.os }}-promptfoo-${{ hashFiles('prompts/**', 'promptfooconfig.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-promptfoo-
+
+      - name: Run promptfoo evaluations
+        uses: promptfoo/promptfoo-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          prompts: "prompts/**/*.txt"
+          config: "promptfooconfig.yaml"
+          cache-path: ~/.cache/promptfoo
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Add additional provider keys as needed:
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      # ── Nightly: run full suite + upload results artifact ──────────────────
+      - name: Export eval results (nightly only)
+        if: github.event_name == 'schedule'
+        run: |
+          promptfoo eval --config promptfooconfig.yaml --output eval-results.json --output-format json
+          echo "Nightly eval complete. Results in eval-results.json."
+
+      - name: Upload nightly results
+        if: github.event_name == 'schedule'
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptfoo-nightly-${{ github.run_id }}
+          path: eval-results.json
+          retention-days: 30
