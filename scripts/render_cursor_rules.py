@@ -23,6 +23,7 @@ import difflib
 import hashlib
 import json
 import sys
+import textwrap
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -147,8 +148,6 @@ def managed_header(*, template_path: Path, template_sha: str, config_path: Path,
 
 
 def textwrap_dedent(value: str) -> str:
-    import textwrap
-
     return textwrap.dedent(value)
 
 
