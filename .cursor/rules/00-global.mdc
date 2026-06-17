@@ -1,0 +1,38 @@
+---
+description: "L9 global conventions — applied to every file in this workspace"
+globs: ["**/*"]
+alwaysApply: true
+---
+<!-- L9_META role: cursor_rule tags: [l9, global, enforcement] version: 1.1.0 /L9_META -->
+
+# L9 Global Agent Conventions
+
+## Execution Discipline
+
+- Read every target file completely before modifying.
+- Produce complete files — no stubs, no `# TODO`, no placeholder sections.
+- When scope exceeds 5 files or touches a protected path, propose a plan and wait for approval before executing.
+- Never silently change behavior. State what changes and why.
+
+## Protected Paths — STOP and Ask Before Touching
+
+- `uv.lock` — only modified by `uv lock` or `uv add`
+- `pyproject.toml` — run `uv lock` after any change
+- `.github/workflows/*.yml`
+- `observability/docker-compose.observability.yml`
+- `src/l9_service/observability/bootstrap.py`
+
+## Quality Gate — MUST Pass Before Completing Any Task
+
+1. `uv run ruff format --check src/ tests/` — passes
+2. `uv run ruff check src/ tests/` — passes
+3. `uv run pyright src/` — 0 new errors
+4. `uv run pytest tests/ -x --tb=short` — passes
+
+## INVARIANTS — Never Violate
+
+- No `print()` in `src/` — use `get_logger(__name__)`
+- No `eval`, `exec`, `compile` anywhere
+- `_provider_override` and `Metrics._test_provider` MUST only appear in test fixture code
+- `healthz` and `readyz` MUST remain unauthenticated
+- `uv.lock` MUST be committed and current

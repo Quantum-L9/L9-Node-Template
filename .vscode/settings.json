@@ -1,0 +1,52 @@
+{
+  // L9_META role: editor_settings version: 1.2.0
+  // Safe to commit — no absolute paths, no personal settings, no tokens.
+  // Personal settings that MUST NOT be committed: font, theme, AI model, API keys.
+
+  "python.venvPath": ".",
+  "python.venvFolders": [".venv"],
+  "python.defaultInterpreterPath": ".venv/bin/python",
+
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.cwd": "${workspaceFolder}",
+
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+
+  // Pylance: typeCheckingMode intentionally "off" — Pyright runs via `make ci`.
+  // Raising this to "basic" or "standard" here adds editor noise without CI parity.
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.completeFunctionParens": true,
+
+  "editor.rulers": [100],
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/*.pyc": true,
+    ".venv": true,
+    ".ruff_cache": true
+  },
+
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/__pycache__/**": true
+  },
+
+  "search.exclude": {
+    ".venv": true,
+    "__pycache__": true,
+    "uv.lock": true
+  }
+}

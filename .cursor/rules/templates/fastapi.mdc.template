@@ -1,0 +1,28 @@
+---
+description: "${repo_name} FastAPI conventions — generated from domain cartridge"
+globs: ["src/**/*.py"]
+alwaysApply: true
+---
+<!-- L9_META role: cursor_rule tags: [fastapi, generated, ${domain}] version: ${plugin_version} /L9_META -->
+
+# FastAPI Conventions — ${repo_name}
+
+> ${rendered_notice}
+
+## Route Layer
+
+- All routes must live on `APIRouter` with explicit `prefix` and `tags`.
+- Route handlers should be `async` unless there is a clear CPU-bound reason not to.
+- Keep business logic out of handlers; delegate to service/use-case modules.
+- `GET /healthz` and `GET /readyz` must remain unauthenticated.
+
+## Observability
+
+- Wrap external I/O with the local tracing helper from `${package_name}.observability.tracing`.
+- Use the local logger from `${package_name}.observability.logging`; do not use `print()` in `src/`.
+- Do not import bootstrap initialization directly in route handlers.
+
+## Runtime
+
+- App entrypoint: `${app_entrypoint}`
+- Package name: `${package_name}`

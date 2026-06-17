@@ -1,0 +1,30 @@
+---
+description: "L9 agent guardrails for autonomous task execution"
+globs: ["**/agents/**", "**/tasks/**", "**/workflows/**"]
+alwaysApply: false
+---
+<!-- L9_META role: cursor_rule tags: [agents, guardrails, autonomous] version: 1.1.0 /L9_META -->
+
+# L9 Agent Guardrails
+
+## Before Executing Any Multi-File Task
+
+1. State the complete TODO plan with file paths and change descriptions.
+2. Wait for human confirmation before executing if scope > 5 files or touches a protected path.
+3. Mark each TODO as PENDING → APPLIED → VERIFIED after execution.
+
+## High-Risk Operations — STOP; Require Explicit Approval
+
+- `git push --force`
+- `docker compose down -v`
+- `uv add` (modifies lock file)
+- Any `.github/workflows/` change
+- Any `observability/docker-compose.observability.yml` change
+
+## Fix-B Constraint
+
+When writing or modifying test fixtures, MUST use the Fix-B pattern:
+
+- Inject via `tracing._provider_override` and `Metrics._test_provider`
+- Clear both in root `conftest.py` autouse fixture
+- NEVER call `set_tracer_provider()` or `set_meter_provider()` directly in test bodies

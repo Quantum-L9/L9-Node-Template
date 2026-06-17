@@ -1,0 +1,47 @@
+# L9_META role: domain_cartridge version: 1.0.0 updated: 2026-06-07
+# Plugin configuration — instantiates parametric .cursor/rules/ templates for this repo.
+# Produced from the Brief-DevContainer-X-Plugin-Boundaries analysis:
+#   "Rule files become templates ... Each repo ships a plugin-config.yaml declaring its
+#    specific values. An install step renders templates → concrete .mdc files for that repo."
+#
+# Usage: a template-render script reads this file and produces final .mdc files.
+# MUST NOT contain secrets, tokens, or absolute machine paths.
+
+plugin_version: "1.0.0"
+repo_name: "l9-service"
+domain: "l9-microservice-template"
+
+protected_paths:
+  - "uv.lock"
+  - "pyproject.toml"
+  - ".github/workflows/*.yml"
+  - "observability/docker-compose.observability.yml"
+  - "src/l9_service/observability/bootstrap.py"
+
+high_risk_commands:
+  - "git push --force"
+  - "docker compose down -v"
+  - "rm -rf .venv"
+
+external_endpoint_policy: "STDIO_MCP_ONLY"
+
+ci_gates:
+  - "uv run ruff format --check src/ tests/"
+  - "uv run ruff check src/ tests/"
+  - "uv run pyright src/"
+  - "uv run pytest tests/ -v --tb=short --cov=src --cov-fail-under=70"
+
+test_isolation_pattern: "Fix-B"
+package_name: "l9_service"
+app_entrypoint: "l9_service.main:app"
+src_layout: true
+python_version: "3.12"
+venv_path: ".venv/bin/python"
+
+# Graphable outputs (per L9 Compounding Leverage Kernel law):
+# Every plugin install should emit a graph record with these fields.
+graph_record:
+  node_type: "plugin_install"
+  capabilities: ["ci-ladder", "otel-observability", "fix-b-test-isolation", "devcontainer"]
+  data_governance_class: "internal"
+  maintenance_owner: "igor_beylin"

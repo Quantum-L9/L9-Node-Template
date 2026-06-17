@@ -1,0 +1,91 @@
+{
+  // L9_META role: launch_config version: 1.2.0
+  // All configs use debugpy (not legacy "python" type) + explicit .venv interpreter.
+  // DO NOT use "program":"uv","args":["run",...] — debugpy cannot attach to uv binary (uv#7803).
+  // DO NOT use "type":"python" — deprecated since VS Code Python extension 2024.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "python": ".venv/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" }
+    },
+    {
+      "name": "FastAPI: uvicorn --reload",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "python": ".venv/bin/python",
+      "args": [
+        "l9_service.main:app",
+        "--reload",
+        "--port", "8000"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src",
+        "ENVIRONMENT": "dev"
+      }
+    },
+    {
+      "name": "FastAPI: fastapi dev (fastapi-cli)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "python": ".venv/bin/python",
+      "args": ["dev", "src/l9_service/main.py"],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${workspaceFolder}",
+      "env": { "ENVIRONMENT": "dev" }
+    },
+    {
+      "name": "Pytest: All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "python": ".venv/bin/python",
+      "args": ["tests/", "-v", "--tb=short"],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Pytest: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "python": ".venv/bin/python",
+      "args": ["${file}", "-v", "--tb=short"],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: Module (prompt)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "${input:moduleName}",
+      "python": ".venv/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "moduleName",
+      "type": "promptString",
+      "description": "Python module to run (e.g., l9_service.main)"
+    }
+  ]
+}

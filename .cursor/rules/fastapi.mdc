@@ -1,0 +1,17 @@
+---
+description: "FastAPI and route layer conventions"
+globs: ["src/**/*.py"]
+alwaysApply: true
+---
+<!-- L9_META role: cursor_rule tags: [fastapi, routes, api] version: 1.1.0 /L9_META -->
+
+# FastAPI Conventions
+
+- All routes on `APIRouter` with explicit `prefix` and `tags`.
+- Route functions MUST be `async` unless the handler is demonstrably CPU-bound and blocking.
+- No business logic in route handlers — delegate to a service layer.
+- `GET /healthz` and `GET /readyz` MUST always be present, unauthenticated, and return 200 when the process is alive.
+- All request/response bodies MUST use Pydantic `BaseModel` with distinct `*Request` / `*Response` types.
+- Wrap all external I/O calls (DB, HTTP, cache) with `span()` context manager from `l9_service.observability.tracing`.
+- Use `get_logger(__name__)` from `l9_service.observability.logging` — never `print()` or bare `logging.getLogger`.
+- Never import from `bootstrap.py` directly in route handlers.

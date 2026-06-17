@@ -1,0 +1,28 @@
+---
+description: "Domain cartridge rule — parametric .mdc templates; prevents hardcoded repo-specific paths"
+globs: [".cursor/rules/**", "plugin-config.yaml"]
+alwaysApply: false
+---
+<!-- L9_META role: cursor_rule tags: [domain-cartridge, parametric, portability] version: 1.0.0 /L9_META -->
+
+# Domain Cartridge Convention
+
+## Purpose
+
+.mdc rule files in this repo MUST be parametric templates, not hardcoded L9-specific files. This enables reuse across all L9 repos. Each repo instantiates rules from `plugin-config.yaml` values.
+
+## Rules
+
+- MUST NOT hardcode absolute package names, paths, or repo-specific values inside `.mdc` rule content.
+- MUST reference `plugin-config.yaml` for: `protected_paths`, `high_risk_commands`, `package_name`, `app_entrypoint`, `ci_gates`.
+- Any new `.mdc` rule MUST declare its template variables in a `## Template Variables` section.
+- Rules that currently hardcode `l9_service` MUST be annotated with `# TODO: parameterize via plugin-config.yaml` until a render step is implemented.
+- The render script (future) MUST produce final `.mdc` files from templates + `plugin-config.yaml`.
+
+## Why
+
+A rule that only works for one repo has failed the constellation premise. The whole point of the rule layer is organization-wide cognitive convergence. Hardcoded rules score `domain_cartridge_compatibility` at 0 in the Leverage Kernel — parametric templates score it at 4–5.
+
+## Current State (bootstrap)
+
+Rules in this repo are first-pass concrete instances, not yet rendered from templates. They are explicitly annotated as such. The parametric template system is in `plugin-config.yaml` v1.0.0 — the render step is a planned next action.

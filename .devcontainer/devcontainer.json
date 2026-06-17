@@ -1,0 +1,79 @@
+// L9_META role: devcontainer version: 1.2.0 updated: 2026-06-07
+// Body = devcontainer (runtime). Mind = plugin (.cursor/rules + SKILL.md).
+// onCreateCommand: install uv + sync locked deps (reproducible, fast, no pip-only fallback)
+// postCreateCommand: install pre-commit hooks so every commit is gate-checked
+// forwardPorts: 8000=app, 3000=grafana, 9090=prometheus, 3200=tempo, 4317/4318=otelcol
+{
+  "name": "L9 Service",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" }
+  },
+
+  "onCreateCommand": "pip install uv --quiet && uv sync --locked",
+  "postCreateCommand": "uv run pre-commit install && echo '✅ L9 container ready — run: make ci'",
+  "updateContentCommand": "uv sync --locked",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "ms-python.vscode-pylance",
+        "ms-vscode.makefile-tools",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "usernamehw.errorlens",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": ".venv/bin/python",
+        "python.venvPath": ".",
+        "python.venvFolders": [".venv"],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": ["tests"],
+        "python.analysis.diagnosticMode": "workspace",
+        "python.analysis.typeCheckingMode": "off",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/*.pyc": true,
+          ".venv": true
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/l9-service",
+  "forwardPorts": [8000, 3000, 9090, 3200, 4317, 4318],
+
+  "portsAttributes": {
+    "8000": { "label": "FastAPI app", "onAutoForward": "notify" },
+    "3000": { "label": "Grafana", "onAutoForward": "silent" },
+    "9090": { "label": "Prometheus", "onAutoForward": "silent" },
+    "3200": { "label": "Tempo", "onAutoForward": "silent" },
+    "4317": { "label": "OTel Collector (gRPC)", "onAutoForward": "silent" },
+    "4318": { "label": "OTel Collector (HTTP)", "onAutoForward": "silent" }
+  },
+
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/l9-service/src",
+    "ENVIRONMENT": "dev"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "_comment_scope": "Project-scoped MCP servers for this workspace only.",
+  "_comment_global": "Global MCPs (used across all projects) belong in ~/.cursor/mcp.json",
+  "_comment_security": "Do NOT add SSE-based MCP servers for sensitive L9 tools. Use stdio transport only.",
+  "_comment_add": "Add servers as: { \"my-server\": { \"command\": \"...\", \"args\": [...], \"env\": {} } }",
+  "mcpServers": {}
+}
