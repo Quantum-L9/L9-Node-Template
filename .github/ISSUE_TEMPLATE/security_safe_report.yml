@@ -1,0 +1,39 @@
+name: Security Report (Safe)
+description: Report a non-critical security observation (for critical issues use private disclosure)
+labels: ["type:security", "risk:security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Important:** For critical vulnerabilities, please use GitHub's private security advisory feature instead of this public form.
+        This template is for non-critical security observations only.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the security observation
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Estimated Severity
+      options:
+        - Low
+        - Medium
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What could happen if this is exploited?
+    validations:
+      required: true
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Suggested Remediation
+      description: How should this be fixed?
+    validations:
+      required: false

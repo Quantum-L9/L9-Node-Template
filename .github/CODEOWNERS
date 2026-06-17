@@ -1,0 +1,13 @@
+# L9 Node Template CODEOWNERS
+# Default owner for everything
+* @cryptoxdog
+
+# CI/CD and workflows
+.github/ @cryptoxdog
+
+# Security-sensitive files
+.semgrep/ @cryptoxdog
+.gitleaks.toml @cryptoxdog
+
+# Governance
+.github/governance/ @cryptoxdog
