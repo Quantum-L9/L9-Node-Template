@@ -16,6 +16,7 @@ Routing logic:
   - Unknown extensions fail closed (all gates run).
   - Labels are hints only — evidence beats labels.
 """
+
 import json
 import os
 import subprocess
