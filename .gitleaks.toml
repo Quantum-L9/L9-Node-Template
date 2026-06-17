@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "L9 Node Template allowlist"
+paths = [
+  '''\.github/workflows/.*\.yml''',
+]

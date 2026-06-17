@@ -23,6 +23,7 @@ import difflib
 import hashlib
 import json
 import sys
+import textwrap
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -32,9 +33,7 @@ from typing import Any
 try:
     import yaml
 except ModuleNotFoundError as exc:  # pragma: no cover - environment guard
-    raise SystemExit(
-        "PyYAML is required. Install with: uv add --dev pyyaml"
-    ) from exc
+    raise SystemExit("PyYAML is required. Install with: uv add --dev pyyaml") from exc
 
 RENDER_MARKER = "L9_RENDERED"
 DEFAULT_CONFIG = Path("plugin-config.yaml")
@@ -131,7 +130,9 @@ def build_context(config: dict[str, Any], *, config_path: Path, config_sha: str)
     return ctx
 
 
-def managed_header(*, template_path: Path, template_sha: str, config_path: Path, config_sha: str) -> str:
+def managed_header(
+    *, template_path: Path, template_sha: str, config_path: Path, config_sha: str
+) -> str:
     render_id = sha256_text(f"{template_sha}:{config_sha}")
     return textwrap_dedent(
         f"""
@@ -147,8 +148,6 @@ def managed_header(*, template_path: Path, template_sha: str, config_path: Path,
 
 
 def textwrap_dedent(value: str) -> str:
-    import textwrap
-
     return textwrap.dedent(value)
 
 
@@ -159,7 +158,14 @@ def output_name_for_template(template_path: Path) -> str:
     return name.removesuffix(".template")
 
 
-def render_one(template_path: Path, output_dir: Path, context: dict[str, str], *, config_path: Path, config_sha: str) -> RenderedRule:
+def render_one(
+    template_path: Path,
+    output_dir: Path,
+    context: dict[str, str],
+    *,
+    config_path: Path,
+    config_sha: str,
+) -> RenderedRule:
     raw = template_path.read_text(encoding="utf-8")
     template_sha = sha256_text(raw)
     rendered_body = Template(raw).safe_substitute(context)
@@ -207,7 +213,9 @@ def unified_diff(path: Path, expected: str) -> str:
     )
 
 
-def write_manifest(path: Path, *, config_path: Path, config_sha: str, rendered: list[RenderedRule]) -> None:
+def write_manifest(
+    path: Path, *, config_path: Path, config_sha: str, rendered: list[RenderedRule]
+) -> None:
     manifest = {
         "schema": "l9.cursor_rules.render_manifest.v1",
         "rendered_at": datetime.now(UTC).isoformat(),
@@ -246,7 +254,10 @@ def run(args: argparse.Namespace) -> int:
 
     stale: list[RenderedRule] = []
     for rule in rendered:
-        if not rule.output_path.exists() or rule.output_path.read_text(encoding="utf-8") != rule.content:
+        if (
+            not rule.output_path.exists()
+            or rule.output_path.read_text(encoding="utf-8") != rule.content
+        ):
             stale.append(rule)
 
     if args.check:
@@ -282,7 +293,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--check", action="store_true", help="Fail if rendered files are stale")
     parser.add_argument("--diff", action="store_true", help="Print unified diffs with --check")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing unmanaged .mdc files once during migration")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing unmanaged .mdc files once during migration",
+    )
     return parser.parse_args(argv)
 
 

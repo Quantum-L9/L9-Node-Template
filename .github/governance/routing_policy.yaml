@@ -1,0 +1,23 @@
+routing_policy:
+  version: 1
+  primary_signal: changed_files
+  secondary_signal: labels
+  conflict_resolution: evidence_beats_labels
+  classes:
+    - name: code
+      patterns: ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.go", "*.rs"]
+      gates: [lint, test, security]
+    - name: docs
+      patterns: ["*.md", "*.rst", "*.txt", "docs/**"]
+      gates: []
+      advisory: [lint]
+    - name: infrastructure
+      patterns: ["*.tf", "*.hcl", "*.yaml", "*.yml", ".github/**"]
+      gates: [lint, security]
+    - name: security
+      patterns: [".semgrep/**", ".gitleaks.toml", "security/**"]
+      gates: [security]
+    - name: unknown
+      patterns: ["*"]
+      gates: [lint, test, security]
+      policy: fail_closed

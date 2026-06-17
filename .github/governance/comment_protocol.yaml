@@ -1,0 +1,11 @@
+comment_protocol:
+  version: 1
+  markers:
+    ci_summary: "<!-- l9-ci-summary -->"
+    contract_control: "<!-- l9-contract-control -->"
+    review_status: "<!-- l9-review-status -->"
+  rules:
+    - "Use stable markers for persistent comments"
+    - "Update existing comments, never duplicate"
+    - "Maximum 2000 characters per comment section"
+    - "Include job status table in ci_summary"
