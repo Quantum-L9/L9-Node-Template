@@ -1,0 +1,12 @@
+blocking_policy:
+  version: 1
+  merge_gate: "PR Pipeline Gate"
+  blocking_jobs:
+    - lint
+    - test
+    - security
+  advisory_jobs:
+    - dependency-review
+    - gitleaks
+  unknown_class_behavior: block_all
+  inherited_debt_behavior: advisory_unless_touched
