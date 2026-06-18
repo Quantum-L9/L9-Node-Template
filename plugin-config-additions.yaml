@@ -1,0 +1,21 @@
+# ADDITIONS to plugin-config.yaml — merge these fields into the existing file
+
+# Additional protected paths
+protected_paths:
+  - "contracts/NODECONTRACT.yaml"
+  - "contracts/ENGINESPEC.yaml"
+  - "src/l9_service/enginehandlers.py"
+  - ".github/governance/blocking_policy.yaml"
+  - ".l9-template-version"
+
+# Additional CI gates
+ci_gates:
+  - "python tools/verify_contracts.py"
+  - "python tools/audit_engine.py --path src/ --fail-on HIGH"
+  - "python tools/review/analyzers/template_compliance.py"
+
+# Template topology
+template_topology: "three-repo"
+codegen_input: "nodespec.yaml"
+sdk_bridge: "src/l9_service/enginehandlers.py"
+transport_contract: "TransportPacket"

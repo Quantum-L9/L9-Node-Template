@@ -1,0 +1,46 @@
+<!-- L9_META
+role: node_contract
+version: 1.0.0
+status: template
+tags: [l9, contract, authority, ownership]
+/L9_META -->
+
+# NODECONTRACT — {{node_slug}}
+# Generated from nodespec.yaml § ownership_contract
+# Replace all {{placeholder}} values before committing.
+
+node_slug: "{{node_slug}}"
+authority_class: "{{authority_class}}"        # READER | WRITER | ORCHESTRATOR | SENSOR
+mutation_profile: "{{mutation_profile}}"      # immutable | append_only | full
+
+ownership:
+  owns:
+    - "{{domain_resource_1}}"
+  does_not_own:
+    - "{{foreign_resource_1}}"
+
+permissions:
+  may_do:
+    - "{{allowed_action_1}}"
+  must_not_do:
+    - direct_node_to_node_http
+    - bypass_gate
+    - import_packet_envelope
+    - write_to_foreign_owned_resource
+
+transport:
+  protocol: TransportPacket
+  router: Gate           # sole router — no direct calls
+  sdk_bridge: enginehandlers.py   # only file that imports SDK transport
+
+lifecycle:
+  states: []             # filled from nodespec.yaml § lifecycle
+  terminal_states: []
+  invalid_transitions: {}
+
+non_conformance_conditions:
+  - uses_PacketEnvelope_anywhere
+  - direct_http_to_other_node
+  - handler_count_mismatch_with_enginespec
+  - missing_L9META_on_tracked_file
+  - uv_lock_not_current

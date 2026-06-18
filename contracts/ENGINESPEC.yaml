@@ -1,0 +1,28 @@
+<!-- L9_META
+role: engine_spec
+version: 1.0.0
+status: template
+tags: [l9, engine, registration, sdk]
+/L9_META -->
+
+# ENGINESPEC — {{node_slug}}
+# Read by the L9 SDK at startup.
+# Actions here MUST have a matching handle_<action> in enginehandlers.py.
+
+node_slug: "{{node_slug}}"
+schema_version: "1.0.0"
+
+actions:
+  - name: "{{action_1}}"
+    intent: "{{action_1_description}}"
+    mutation_class: "{{READ|WRITE|APPEND}}"
+    priority_class: "{{P0|P1|P2}}"
+    request_payload: "{{Action1Request}}"
+    response_payload: "{{Action1Response}}"
+
+registration:
+  internal_url: "${NODE_INTERNAL_URL}"
+  health_endpoint: "/healthz"
+  readiness_endpoint: "/readyz"
+  max_concurrent: ${NODE_MAX_CONCURRENT:-10}
+  timeout_ms: ${NODE_TIMEOUT_MS:-5000}
