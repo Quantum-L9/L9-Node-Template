@@ -44,7 +44,7 @@ def setup_telemetry(
     service_version: str | None = None,
 ) -> None:
     """Initialise OTel tracing + metrics + auto-instrumentation. Idempotent."""
-    global _initialized  # noqa: PLW0603
+    global _initialized
     if _initialized:
         return
     name = service_name or os.getenv("OTEL_SERVICE_NAME", "l9-service")
