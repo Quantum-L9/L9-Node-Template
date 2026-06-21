@@ -6,7 +6,6 @@
 # tags: [l9, validation, generated_files, boundaries]
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +23,7 @@ FORBIDDEN_TEMPLATE_OWNED_GENERATOR_TERMS = [
     "parse_" + "nodespec",
 ]
 
+
 def main() -> int:
     if not ENGINE.exists():
         print(f"[FAIL] missing {ENGINE.relative_to(ROOT)}")
@@ -38,7 +38,10 @@ def main() -> int:
             if rel.as_posix() == "src/l9_service/enginehandlers.py":
                 continue
             body = py.read_text(encoding="utf-8", errors="replace")
-            if rel.as_posix() not in {"tools/audit_engine.py", "tools/validate_generated_boundaries.py"}:
+            if rel.as_posix() not in {
+                "tools/audit_engine.py",
+                "tools/validate_generated_boundaries.py",
+            }:
                 if "from l9_sdk.transport import" in body:
                     print(f"[FAIL] SDK transport import outside enginehandlers.py: {rel}")
                     failures.append(str(rel))
@@ -48,12 +51,15 @@ def main() -> int:
                     failures.append(str(rel))
             for term in FORBIDDEN_TEMPLATE_OWNED_GENERATOR_TERMS:
                 if term in body:
-                    print(f"[FAIL] generator ownership term found in template-owned file {rel}: {term}")
+                    print(
+                        f"[FAIL] generator ownership term found in template-owned file {rel}: {term}"
+                    )
                     failures.append(str(rel))
     if failures:
         return 1
     print("Generated boundary validation passed")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

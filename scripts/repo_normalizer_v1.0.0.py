@@ -21,10 +21,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable
 
 VERSION = "1.0.0"
 REPORT_PATH = Path("docs/repo_normalization_report.json")
@@ -70,10 +70,10 @@ STUB_CONTENT: dict[str, str] = {
     "AGENTS.md": "# Agents\n\nReplace this stub.\n",
     ".env.example": "# Environment variables\n",
     "plugin-config.yaml": (
-        "plugin_version: \"1.0.0\"\nrepo_name: \"my-service\"\ndomain: \"my-domain\"\n"
+        'plugin_version: "1.0.0"\nrepo_name: "my-service"\ndomain: "my-domain"\n'
         "protected_paths: []\nhigh_risk_commands: []\nci_gates: []\n"
-        "package_name: \"my_service\"\napp_entrypoint: \"my_service.main:app\"\n"
-        "python_version: \"3.12\"\nvenv_path: \".venv/bin/python\"\n"
+        'package_name: "my_service"\napp_entrypoint: "my_service.main:app"\n'
+        'python_version: "3.12"\nvenv_path: ".venv/bin/python"\n'
     ),
 }
 
@@ -158,17 +158,21 @@ def check_required_root_files(root: Path, check_only: bool) -> list[CheckResult]
 
 
 @check
-def check_required_scripts(root: Path, check_only: bool) -> list[CheckResult]:  # noqa: ARG001
+def check_required_scripts(root: Path, check_only: bool) -> list[CheckResult]:
     results = []
     for rel in REQUIRED_SCRIPTS:
         p = root / rel
         if p.exists():
             results.append(CheckResult("required_script", "ok", "exists", rel))
         else:
-            results.append(CheckResult(
-                "required_script", "violation",
-                f"missing script — add manually: {rel}", rel,
-            ))
+            results.append(
+                CheckResult(
+                    "required_script",
+                    "violation",
+                    f"missing script — add manually: {rel}",
+                    rel,
+                )
+            )
     return results
 
 
@@ -201,24 +205,41 @@ def check_src_package(root: Path, check_only: bool) -> list[CheckResult]:
     pkg = src / "my_service"
     pkg.mkdir(exist_ok=True)
     (pkg / "__init__.py").write_text('"""my_service package stub."""\n', encoding="utf-8")
-    return [CheckResult("src_package", "fixed", "created stub package src/my_service/", "src/my_service")]
+    return [
+        CheckResult(
+            "src_package", "fixed", "created stub package src/my_service/", "src/my_service"
+        )
+    ]
 
 
 @check
-def check_plugin_config_keys(root: Path, check_only: bool) -> list[CheckResult]:  # noqa: ARG001
+def check_plugin_config_keys(root: Path, check_only: bool) -> list[CheckResult]:
     p = root / "plugin-config.yaml"
     if not p.exists():
-        return [CheckResult("plugin_config", "violation", "plugin-config.yaml missing", "plugin-config.yaml")]
+        return [
+            CheckResult(
+                "plugin_config", "violation", "plugin-config.yaml missing", "plugin-config.yaml"
+            )
+        ]
     try:
         import yaml  # noqa: PLC0415
+
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
-    except Exception as exc:  # noqa: BLE001
-        return [CheckResult("plugin_config", "violation", f"parse error: {exc}", "plugin-config.yaml")]
+    except Exception as exc:
+        return [
+            CheckResult("plugin_config", "violation", f"parse error: {exc}", "plugin-config.yaml")
+        ]
     required_keys = {"plugin_version", "repo_name", "domain", "package_name", "python_version"}
     missing = required_keys - set(data.keys())
     if not missing:
-        return [CheckResult("plugin_config", "ok", "all required keys present", "plugin-config.yaml")]
-    return [CheckResult("plugin_config", "violation", f"missing keys: {sorted(missing)}", "plugin-config.yaml")]
+        return [
+            CheckResult("plugin_config", "ok", "all required keys present", "plugin-config.yaml")
+        ]
+    return [
+        CheckResult(
+            "plugin_config", "violation", f"missing keys: {sorted(missing)}", "plugin-config.yaml"
+        )
+    ]
 
 
 def run_checks(root: Path, *, check_only: bool) -> NormalizationReport:
@@ -248,8 +269,12 @@ def write_report(report: NormalizationReport, root: Path) -> Path:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="Check only; exit 1 if violations found")
-    parser.add_argument("--report", action="store_true", help="Print JSON report to stdout and exit")
+    parser.add_argument(
+        "--check", action="store_true", help="Check only; exit 1 if violations found"
+    )
+    parser.add_argument(
+        "--report", action="store_true", help="Print JSON report to stdout and exit"
+    )
     parser.add_argument("--root", default=".", help="Repo root directory (default: cwd)")
     return parser.parse_args(argv)
 

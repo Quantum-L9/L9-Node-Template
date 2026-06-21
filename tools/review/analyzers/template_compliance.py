@@ -11,11 +11,11 @@ Usage:
         --manifest tools/l9_contract_manifest.yaml \
         [--json]
 """
+
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -55,12 +55,14 @@ def run(repo_root: Path, manifest_path: Path) -> ComplianceReport:
     for entry in manifest.get("required_files", []):
         p = repo_root / entry["path"]
         if not p.exists():
-            report.findings.append(ComplianceFinding(
-                rule="REQUIRED_FILE_MISSING",
-                severity="FAIL",
-                path=entry["path"],
-                message=f"Required file not found: {entry['path']}",
-            ))
+            report.findings.append(
+                ComplianceFinding(
+                    rule="REQUIRED_FILE_MISSING",
+                    severity="FAIL",
+                    path=entry["path"],
+                    message=f"Required file not found: {entry['path']}",
+                )
+            )
 
     # Protected paths
     for protected in manifest.get("protected_paths", []):
@@ -69,12 +71,14 @@ def run(repo_root: Path, manifest_path: Path) -> ComplianceReport:
         if codeowners.exists():
             content = codeowners.read_text()
             if protected not in content:
-                report.findings.append(ComplianceFinding(
-                    rule="PROTECTED_PATH_NOT_IN_CODEOWNERS",
-                    severity="WARN",
-                    path=protected,
-                    message=f"Protected path {protected} not listed in CODEOWNERS",
-                ))
+                report.findings.append(
+                    ComplianceFinding(
+                        rule="PROTECTED_PATH_NOT_IN_CODEOWNERS",
+                        severity="WARN",
+                        path=protected,
+                        message=f"Protected path {protected} not listed in CODEOWNERS",
+                    )
+                )
 
     # L9META on tracked Python files
     tracked_python = [
@@ -88,22 +92,26 @@ def run(repo_root: Path, manifest_path: Path) -> ComplianceReport:
         if full.exists():
             content = full.read_text(encoding="utf-8")
             if "L9_META" not in content:
-                report.findings.append(ComplianceFinding(
-                    rule="L9META_MISSING",
-                    severity="FAIL",
-                    path=fp,
-                    message=f"L9_META header missing in tracked file: {fp}",
-                ))
+                report.findings.append(
+                    ComplianceFinding(
+                        rule="L9META_MISSING",
+                        severity="FAIL",
+                        path=fp,
+                        message=f"L9_META header missing in tracked file: {fp}",
+                    )
+                )
 
     # l9-template-version file
     ver_file = repo_root / ".l9-template-version"
     if not ver_file.exists():
-        report.findings.append(ComplianceFinding(
-            rule="TEMPLATE_VERSION_MISSING",
-            severity="FAIL",
-            path=".l9-template-version",
-            message=".l9-template-version file missing — required for drift detection",
-        ))
+        report.findings.append(
+            ComplianceFinding(
+                rule="TEMPLATE_VERSION_MISSING",
+                severity="FAIL",
+                path=".l9-template-version",
+                message=".l9-template-version file missing — required for drift detection",
+            )
+        )
 
     return report
 

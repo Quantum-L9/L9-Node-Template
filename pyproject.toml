@@ -76,7 +76,7 @@ markers = [
 
 [tool.coverage.run]
 branch = true
-source = ["src"]
+source = ["src", "scripts", "tools"]
 omit   = ["tests/**"]
 
 [tool.coverage.report]

@@ -21,6 +21,7 @@ Usage:
 
 Exit codes: 0 = pass, 1 = findings at or above fail_on severity.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -100,25 +101,42 @@ def audit_file(path: Path) -> list[AuditFinding]:
 
     # ── L9-META check ────────────────────────────────────────────────────────
     if "L9_META" not in src:
-        add("L9-META-001", "MEDIUM", 1,
-            "File is missing L9_META header block.", "L9-META")
+        add("L9-META-001", "MEDIUM", 1, "File is missing L9_META header block.", "L9-META")
 
     # ── L9-TRANSPORT ─────────────────────────────────────────────────────────
     is_bridge = path.name == "enginehandlers.py"
     for lineno, line in enumerate(lines, 1):
         if "PacketEnvelope" in line and not line.strip().startswith("#"):
-            add("L9-TRANSPORT-001", "HIGH", lineno,
-                "PacketEnvelope import/usage detected. Use TransportPacket only.", "L9-TRANSPORT")
+            add(
+                "L9-TRANSPORT-001",
+                "HIGH",
+                lineno,
+                "PacketEnvelope import/usage detected. Use TransportPacket only.",
+                "L9-TRANSPORT",
+            )
         if re.search(r"from l9_sdk\.transport import", line) and not is_bridge:
-            add("L9-TRANSPORT-002", "HIGH", lineno,
-                f"SDK transport imported outside enginehandlers.py in {rel}.", "L9-BRIDGE")
+            add(
+                "L9-TRANSPORT-002",
+                "HIGH",
+                lineno,
+                f"SDK transport imported outside enginehandlers.py in {rel}.",
+                "L9-BRIDGE",
+            )
 
     # ── L9-ROUTER ─────────────────────────────────────────────────────────────
     for lineno, line in enumerate(lines, 1):
-        if re.search(r"httpx\.|aiohttp\.|requests\.", line) and not line.strip().startswith("#"):
-            if "tests/" not in rel:
-                add("L9-ROUTER-001", "HIGH", lineno,
-                    "Direct HTTP client usage detected. All calls must go through Gate.", "L9-ROUTER")
+        if (
+            re.search(r"httpx\.|aiohttp\.|requests\.", line)
+            and not line.strip().startswith("#")
+            and "tests/" not in rel
+        ):
+            add(
+                "L9-ROUTER-001",
+                "HIGH",
+                lineno,
+                "Direct HTTP client usage detected. All calls must go through Gate.",
+                "L9-ROUTER",
+            )
 
     # ── L9-SECURITY ───────────────────────────────────────────────────────────
     for node in ast.walk(tree):
@@ -130,8 +148,13 @@ def audit_file(path: Path) -> list[AuditFinding]:
             elif isinstance(func, ast.Attribute):
                 fname = func.attr
             if fname in ("eval", "exec", "compile"):
-                add("L9-SECURITY-001", "HIGH", node.lineno,
-                    f"Banned function '{fname}' detected.", "L9-SECURITY")
+                add(
+                    "L9-SECURITY-001",
+                    "HIGH",
+                    node.lineno,
+                    f"Banned function '{fname}' detected.",
+                    "L9-SECURITY",
+                )
 
     # ── L9-OBSERV ─────────────────────────────────────────────────────────────
     if "src/" in rel:
@@ -139,28 +162,46 @@ def audit_file(path: Path) -> list[AuditFinding]:
             if isinstance(node, ast.Call):
                 func = node.func
                 if isinstance(func, ast.Name) and func.id == "print":
-                    add("L9-OBSERV-001", "MEDIUM", node.lineno,
-                        "print() in src/. Use get_logger(__name__) instead.", "L9-OBSERV")
+                    add(
+                        "L9-OBSERV-001",
+                        "MEDIUM",
+                        node.lineno,
+                        "print() in src/. Use get_logger(__name__) instead.",
+                        "L9-OBSERV",
+                    )
 
     # ── L9-PYDANTIC ───────────────────────────────────────────────────────────
     for lineno, line in enumerate(lines, 1):
-        if re.search(r"class\s+\w+\(.*BaseModel.*\)", line):
-            if "model_config" not in src and "class Config:" not in src:
-                # only warn once per file
-                add("L9-PYDANTIC-001", "LOW", lineno,
-                    "Pydantic model has no model_config / Config — consider explicit settings.",
-                    "L9-PYDANTIC")
-                break
+        if (
+            re.search(r"class\s+\w+\(.*BaseModel.*\)", line)
+            and "model_config" not in src
+            and "class Config:" not in src
+        ):
+            # only warn once per file
+            add(
+                "L9-PYDANTIC-001",
+                "LOW",
+                lineno,
+                "Pydantic model has no model_config / Config — consider explicit settings.",
+                "L9-PYDANTIC",
+            )
+            break
 
     # ── L9-HANDLERS ──────────────────────────────────────────────────────────
     if path.name == "enginehandlers.py":
         handler_fns = [
-            node.name for node in ast.walk(tree)
+            node.name
+            for node in ast.walk(tree)
             if isinstance(node, ast.AsyncFunctionDef) and node.name.startswith("handle_")
         ]
         if not handler_fns:
-            add("L9-HANDLERS-001", "HIGH", 1,
-                "enginehandlers.py has no async handle_* functions defined.", "L9-HANDLERS")
+            add(
+                "L9-HANDLERS-001",
+                "HIGH",
+                1,
+                "enginehandlers.py has no async handle_* functions defined.",
+                "L9-HANDLERS",
+            )
 
     return findings
 
@@ -187,8 +228,10 @@ def main() -> None:
     else:
         for f in result.findings:
             print(f"[{f.severity}] {f.rule} {f.file}:{f.line} — {f.message}")
-        print(f"\nSummary: {len(result.findings)} findings "
-              f"(HIGH={len(result.high)}, MEDIUM={len(result.medium)}, LOW={len(result.low)})")
+        print(
+            f"\nSummary: {len(result.findings)} findings "
+            f"(HIGH={len(result.high)}, MEDIUM={len(result.medium)}, LOW={len(result.low)})"
+        )
 
     sev_order = {"HIGH": 2, "MEDIUM": 1, "LOW": 0}
     threshold = sev_order[args.fail_on]
