@@ -48,6 +48,8 @@ jobs:
           uv run pytest tests/ -v \
             --tb=short \
             --cov=src \
+            --cov=scripts \
+            --cov=tools \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=70

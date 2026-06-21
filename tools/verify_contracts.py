@@ -9,6 +9,7 @@ Usage:
 
 Exit: 0 = pass, 1 = violation.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -58,11 +59,10 @@ def verify(repo_root: Path, manifest_path: Path) -> list[str]:
         content = ref_path.read_text(encoding="utf-8")
         for entry in required_files:
             mention = entry.get("must_be_mentioned_in")
-            if mention and ref_file in mention:
-                if entry["path"] not in content:
-                    violations.append(
-                        f"CONTRACT NOT MENTIONED: {entry['path']} missing from {ref_file}"
-                    )
+            if mention and ref_file in mention and entry["path"] not in content:
+                violations.append(
+                    f"CONTRACT NOT MENTIONED: {entry['path']} missing from {ref_file}"
+                )
 
     return violations
 
