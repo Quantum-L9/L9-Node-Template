@@ -1,39 +1,42 @@
-# L9META: file=enginehandlers.py | type=generated_skeleton | spec_section=actions
-# L9META: node=l9_service | version=0.1.0 | transport=TransportPacket
+# L9_META
+# role: sdk_bridge
+# version: 1.1.0
+# status: derived_file
+# generated_by: l9-codegen-engine
+# source_contract: nodespec.yaml
+# hand_editing: forbidden
+# transport: TransportPacket
+# enginespec_alignment: contracts/ENGINESPEC.yaml
+# tags: [l9, sdk, transport, handlers, generated_only]
 """
-Engine action handlers - the sole SDK transport bridge for this node.
+GENERATED FILE: Engine action handlers, the sole SDK transport bridge for this node.
+
+This file is derived from nodespec.yaml by l9-codegen-engine. Do not edit it by hand.
+The repo template may carry this derived-file target path and validation markers, but it does
+not own handler generation logic. Update nodespec.yaml and re-run l9-codegen-engine instead.
 
 CONTRACT INVARIANTS:
-  - Every public function: async def handle_{action_slug}(packet: TransportPacket) -> TransportPacket
+  - Every public handler must have signature:
+      async def handle_<action_slug>(packet: TransportPacket) -> TransportPacket
+  - Every action listed in contracts/ENGINESPEC.yaml must align to nodespec.yaml actions.
   - No dict-typed handler parameters.
-  - No envelope-wrapper imports (only TransportPacket is permitted).
-  - No direct HTTP client imports (httpx / requests / aiohttp).
-  - Gate router is the sole caller of functions in this file.
-
-CODEGEN INSTRUCTIONS:
-  - Replace each `raise NotImplementedError` body with domain logic once
-    enginespec.yaml actions are declared in nodespec.yaml.
-  - Do not add handler functions manually - run codegen with updated nodespec.yaml.
-  - Do not import SDK transport from any other file in this package.
+  - No legacy envelope-wrapper imports anywhere in this repo.
+  - No direct node-to-node HTTP. Gate is the sole router.
+  - This file is the only file allowed to import from the SDK transport layer.
 """
+
 from __future__ import annotations
 
 from l9_sdk.transport import TransportPacket  # sole SDK bridge import
 
 
-async def handle_example(packet: TransportPacket) -> TransportPacket:
-    """Handle example action.
+async def handle_template_boundary(packet: TransportPacket) -> TransportPacket:
+    """Template boundary handler proving the generated-only TransportPacket contract.
 
-    Mutation class: READ
-    Intent: Placeholder - replace via codegen with action defined in nodespec.yaml.
-
-    Args:
-        packet: Inbound TransportPacket routed by the Gate.
-
-    Returns:
-        TransportPacket: Response packet containing action result.
+    This action is a non-production template sentinel. Concrete nodes must regenerate this
+    file from nodespec.yaml so real actions replace this sentinel through l9-codegen-engine.
     """
     raise NotImplementedError(
-        "handle_example is a codegen skeleton. "
-        "Declare actions in nodespec.yaml and re-run codegen to generate real handlers."
+        "src/l9_service/enginehandlers.py is generated-only. Declare actions in "
+        "nodespec.yaml and run l9-codegen-engine to generate concrete handlers."
     )
